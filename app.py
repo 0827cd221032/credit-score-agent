@@ -82,7 +82,11 @@ def download_report():
 
 
 # ✅ GEMINI
-client = genai.Client(api_key="YOUR_API_KEY")
+import os
+
+client = genai.Client(
+    api_key=os.environ.get("GEMINI_API_KEY")
+)
 
 def ai_planner(data):
     try:
