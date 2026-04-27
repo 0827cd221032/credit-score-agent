@@ -1,0 +1,484 @@
+<!DOCTYPE html>
+<html>
+<head>
+<title>Credit AI Dashboard</title>
+
+<style>
+body {
+    margin: 0;
+    font-family: 'Segoe UI';
+    color: white;
+    background: url('https://images.unsplash.com/photo-1551288049-bebda4e38f71') no-repeat center center/cover;
+}
+
+body::before {
+    content: "";
+    position: fixed;
+    width: 100%;
+    height: 100%;
+    background: rgba(0,0,0,0.6);
+    top: 0;
+    left: 0;
+    z-index: 0;
+}
+
+.container {
+    width: 95%;
+    max-width: 1200px;
+    margin: 40px auto;
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+    gap: 25px;
+}
+
+.card {
+    background: rgba(255,255,255,0.12);
+    backdrop-filter: blur(18px);
+    padding: 25px;
+    border-radius: 18px;
+    box-shadow: 0 10px 40px rgba(0,0,0,0.3);
+    border: 1px solid rgba(255,255,255,0.25);
+}
+
+.card:first-child {
+    border: 2px solid rgba(0,234,255,0.6);
+    box-shadow: 0 0 25px rgba(0,234,255,0.4);
+    transform: scale(1.02);
+}
+
+h2 { text-align: center; }
+
+label {
+    color: #00eaff;
+    font-size: 14px;
+}
+
+input, select {
+    width: 100%;
+    padding: 14px;
+    margin: 10px 0;
+    border-radius: 10px;
+    border: 1px solid rgba(255,255,255,0.3);
+    background: rgba(0,0,0,0.4);
+    color: white;
+}
+
+input:focus, select:focus {
+    border: 1px solid #00eaff;
+    box-shadow: 0 0 10px rgba(0,234,255,0.7);
+}
+
+button {
+    width: 100%;
+    padding: 14px;
+    font-weight: bold;
+    background: linear-gradient(45deg,#00eaff,#00ff9c);
+    color: black;
+    border: none;
+    border-radius: 12px;
+    cursor: pointer;
+}
+
+button:hover {
+    transform: scale(1.05);
+}
+
+.score {
+    font-size: 50px;
+    text-align: center;
+    background: linear-gradient(45deg,#00eaff,#00ff9c);
+
+    background-clip: text;          /* 👈 ADD THIS */
+    -webkit-background-clip: text;
+
+    -webkit-text-fill-color: transparent;
+}
+
+.badge {
+    text-align: center;
+    padding: 8px 20px;
+    border-radius: 20px;
+}
+
+.good { background: #28a745; }
+.average { background: #ffc107; color: black; }
+.poor { background: #dc3545; }
+
+.meter {
+    position: relative;
+    width: 180px;
+    height: 180px;
+    margin: 20px auto;
+}
+
+.meter svg { transform: rotate(-90deg); }
+
+.meter-text {
+    position: absolute;
+    top: 50%;
+    left: 50%;
+    transform: translate(-50%, -50%);
+    font-weight: bold;
+}
+
+.logout-btn {
+    position: fixed;
+    top: 20px;
+    right: 20px;
+    padding: 12px 25px;
+    border-radius: 10px;
+}
+
+ul:empty { display: none; }
+
+.container {
+    width: 95%;
+    max-width: 1300px;
+    margin: 40px auto;
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 30px;
+}
+
+.left, .right {
+    display: flex;
+    flex-direction: column;
+    gap: 25px;
+}
+
+.logout-btn {
+    padding: 14px;
+    border-radius: 12px;
+    background: linear-gradient(45deg,#00eaff,#00ff9c);
+    border: none;
+    cursor: pointer;
+}
+.logout-btn {
+    position: fixed;
+    top: 20px;
+    right: 20px;
+    width: auto;        /* 🔥 IMPORTANT */
+    padding: 10px 20px;
+    z-index: 1000;
+}
+.logout-btn:hover {
+    transform: scale(1.05);
+    box-shadow: 0 0 15px rgba(0,255,200,0.7);
+}
+</style>
+</head>
+
+<body>
+
+<div class="container">
+
+  <!-- LEFT SIDE -->
+  <div class="left">
+
+    <!-- INPUT -->
+    <div class="card">
+      <h2>💳 Credit Input</h2>
+
+      <label>Income</label>
+      <input id="income" type="number">
+
+      <label>Credit Usage (%)</label>
+      <input id="usage" type="number">
+
+      <label>Late Payment</label>
+      <select id="late">
+        <option value="0">No</option>
+        <option value="1">Yes</option>
+      </select>
+
+      <h4>📂 Upload Bank Statement</h4>
+      <input type="file" id="fileInput">
+      <button onclick="uploadFile()">Upload</button>
+
+      <p id="bankResult"></p>
+
+      <label>Loans</label>
+      <input id="loans" type="number">
+
+      <button onclick="predict()">Analyze</button>
+      <button onclick="downloadPDF()">Download Report</button>
+
+      <h4>🤖 AI Explanation</h4>
+      <p id="aiText"></p>
+    </div>
+
+    <!-- TIPS -->
+    <div class="card">
+      <h2>📈 Tips</h2>
+      <ul id="tips"></ul>
+    </div>
+
+    <!-- RESULT -->
+    <div class="card">
+      <h2>📊 Result</h2>
+
+      <div class="meter">
+        <svg width="180" height="180">
+          <circle cx="90" cy="90" r="70" stroke="#333" stroke-width="12" fill="none"/>
+          <circle id="progressCircle" cx="90" cy="90" r="70"
+            stroke="#00eaff" stroke-width="12"
+            fill="none"
+            stroke-dasharray="440"
+            stroke-dashoffset="440"/>
+        </svg>
+        <div class="meter-text" id="meterText">--</div>
+      </div>
+
+      <div id="score" class="score">--</div>
+      <div id="badge" class="badge">Waiting</div>
+
+      <ul id="risks"></ul>
+      <ul id="do"></ul>
+      <ul id="avoid"></ul>
+
+      <h4>Confidence: <span id="conf">--</span></h4>
+
+      <canvas id="chart"></canvas>
+    </div>
+
+  </div>
+
+  <!-- RIGHT SIDE -->
+  <div class="right">
+
+    <div class="card">
+      <h2>📅 AI Plan</h2>
+      <p id="plan"></p>
+    </div>
+
+    <div class="card">
+      <h2>📊 Your History</h2>
+      <ul id="historyList"></ul>
+    </div>
+
+    <button class="logout-btn" onclick="logout()">Logout</button>
+
+  </div>
+
+</div>
+
+<!-- RESULT -->
+<div class="card">
+<h2>📊 Result</h2>
+
+
+<h3>Your History</h3>
+<ul id="history"></ul>
+<div class="meter">
+<svg width="180" height="180">
+<circle cx="90" cy="90" r="70" stroke="#333" stroke-width="12" fill="none"/>
+<circle id="progressCircle" cx="90" cy="90" r="70"
+stroke="#00eaff" stroke-width="12"
+fill="none"
+stroke-dasharray="440"
+stroke-dashoffset="440"/>
+</svg>
+<div class="meter-text" id="meterText">--</div>
+</div>
+
+<div id="score" class="score">--</div>
+<div id="badge" class="badge">Waiting</div>
+
+<ul id="risks"></ul>
+<ul id="do"></ul>
+<ul id="avoid"></ul>
+
+<h4>Confidence: <span id="conf">--</span></h4>
+
+<canvas id="chart"></canvas>
+
+</div>
+
+</div>
+
+<script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+
+<script>
+// 🔐 LOGIN CHECK (ADD THIS AT TOP)
+if(!localStorage.getItem("token")){
+    window.location.href = "/login_page";
+}
+
+if(!localStorage.getItem("token")){
+    window.location.href = "/login_page";
+}
+
+let chart = null;
+
+function fillTips(){
+document.getElementById("tips").innerHTML = `
+<li>Pay bills on time</li>
+<li>Keep usage below 30%</li>
+<li>Avoid multiple loans</li>`;
+}
+
+function predict(){
+
+let data = {
+income: +document.getElementById("income").value,
+credit_usage: +document.getElementById("usage").value,
+late_payment: +document.getElementById("late").value,
+loans: +document.getElementById("loans").value
+};
+
+if(!data.income || !data.credit_usage){
+alert("Fill all fields");
+return;
+}
+
+fetch("/predict", {
+method:"POST",
+headers:{
+  "Content-Type":"application/json",
+  "Authorization":"Bearer " + localStorage.getItem("token")
+},
+body:JSON.stringify(data)
+})
+.then(r=>r.json())
+.then(res=>{
+
+let percent = res.credit_score==="Excellent"?90:
+res.credit_score==="Good"?70:
+res.credit_score==="Average"?50:30;
+
+// meter
+let circle = document.getElementById("progressCircle");
+let offset = 440 - (440 * percent / 100);
+circle.style.transition = "stroke-dashoffset 1s ease";
+circle.style.strokeDashoffset = offset;
+
+document.getElementById("meterText").innerText = percent + "%";
+
+function loadHistory(){
+fetch("/history",{
+headers:{
+"Authorization":"Bearer "+localStorage.getItem("token")
+}
+})
+.then(r=>r.json())
+.then(data=>{
+document.getElementById("historyList").innerHTML =
+data.map(x=>`<li>${x[0]} - ${x[1]}</li>`).join("");
+});
+}
+
+loadHistory();
+
+fetch("/history", {
+  headers:{
+    "Authorization":"Bearer " + localStorage.getItem("token")
+  }
+})
+.then(res=>res.json())
+.then(data=>{
+  document.getElementById("history").innerHTML =
+    data.map(x=>`<li>${x[0]} (${x[1]})</li>`).join("");
+});
+
+// text
+document.getElementById("score").innerText = res.credit_score;
+document.getElementById("aiText").innerText = res.ai_explanation;
+document.getElementById("conf").innerText = res.confidence;
+document.getElementById("plan").innerText = res.plan;
+
+// badge
+let badge = document.getElementById("badge");
+badge.innerText = res.credit_score;
+badge.className = "badge";
+
+if(res.credit_score==="Poor") badge.classList.add("poor");
+else if(res.credit_score==="Average") badge.classList.add("average");
+else badge.classList.add("good");
+
+// lists
+document.getElementById("risks").innerHTML =
+  res.risks.map(x=>`<li>${x}</li>`).join("");
+
+document.getElementById("do").innerHTML =
+  res.advice.do.map(x=>`<li>${x}</li>`).join("");
+
+document.getElementById("avoid").innerHTML =
+  res.advice.avoid.map(x=>`<li>${x}</li>`).join("");
+
+// chart
+let history = JSON.parse(localStorage.getItem("h")) || [];
+history.push(percent);
+localStorage.setItem("h", JSON.stringify(history));
+
+if(chart) chart.destroy();
+
+chart = new Chart(document.getElementById("chart"), {
+type: "line",
+data: {
+labels: history.map((_, i) => "Check " + (i+1)),
+datasets: [{
+data: history,
+borderColor: "#00eaff",
+backgroundColor: "rgba(0,234,255,0.2)",
+tension: 0.3,
+fill: true
+}]
+}
+});
+
+});
+
+}
+
+// idea
+history.map(x => x[1]) // cibil score
+
+function logout(){
+    localStorage.removeItem("token");
+    window.location.href = "/login_page";
+}
+
+function uploadFile(){
+let file = document.getElementById("fileInput").files[0];
+
+let formData = new FormData();
+formData.append("file", file);
+
+fetch("/upload", {
+method: "POST",
+body: formData
+})
+.then(res => res.json())
+.then(data => {
+document.getElementById("bankResult").innerText =
+"Income: ₹" + data.income + " | Expense: ₹" + data.expense;
+});
+}
+
+function downloadPDF(){
+let history = JSON.parse(localStorage.getItem("h")) || [];
+
+fetch("/download_report", {
+method:"POST",
+headers:{"Content-Type":"application/json"},
+body: JSON.stringify({
+score: document.getElementById("score").innerText,
+cibil: "value",
+ai: document.getElementById("aiText").innerText,
+history: history
+})
+})
+.then(res => res.blob())
+.then(blob => {
+    let url = window.URL.createObjectURL(blob);
+    let a = document.createElement("a");
+    a.href = url;
+    a.download = "report.pdf";
+    a.click();
+});
+}
+
+</script>
+
+</body>
+</html>
