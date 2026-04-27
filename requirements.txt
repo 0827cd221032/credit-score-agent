@@ -1,0 +1,9 @@
+flask
+flask-cors
+flask-jwt-extended
+pandas
+joblib
+matplotlib
+reportlab
+google-generativeai
+gunicorn
