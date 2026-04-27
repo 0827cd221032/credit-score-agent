@@ -4,7 +4,6 @@ import joblib
 import random
 import sqlite3
 import pandas as pd
-from google import genai
 import matplotlib.pyplot as plt
 from reportlab.platypus import Image
 from flask_jwt_extended import JWTManager
@@ -16,7 +15,13 @@ from flask_jwt_extended import (
     jwt_required, get_jwt_identity
 )
 
+import os
 
+try:
+    import google.generativeai as genai
+    genai.configure(api_key=os.environ.get("GEMINI_API_KEY"))
+except:
+    genai = None
 
 
 # ✅ INIT APP (ONLY ONCE)
@@ -82,45 +87,42 @@ def download_report():
 
 
 # ✅ GEMINI
-import os
+import google.generativeai as genai
 
-client = genai.Client(
-    api_key=os.environ.get("GEMINI_API_KEY")
-)
+genai.configure(api_key=os.environ.get("GEMINI_API_KEY"))
 
 def ai_planner(data):
     try:
+        model_ai = genai.GenerativeModel("gemini-1.5-flash")
+
         prompt = f"""
         Give a step-by-step 30-day plan to improve credit score.
-
         Data: {data}
         """
 
-        res = client.models.generate_content(
-            model="gemini-1.5-flash",
-            contents=prompt
-        )
+        res = model_ai.generate_content(prompt)
         return res.text
-    except:
+
+    except Exception as e:
+        print(e)
         return "Planner unavailable"
 
 # ---------------- AI ----------------
 def generate_ai_explanation(data, risks):
     try:
+        model_ai = genai.GenerativeModel("gemini-1.5-flash")
+
         prompt = f"""
         Explain credit score in simple terms.
-
         Data: {data}
         Risks: {risks}
         """
 
-        response = client.models.generate_content(
-            model="gemini-1.5-flash",
-            contents=prompt
-        )
+        res = model_ai.generate_content(prompt)
+        return res.text
 
-        return response.text
-    except:
+    except Exception as e:
+        print(e)
         return "AI explanation unavailable"
 
 # ---------------- DB ----------------
