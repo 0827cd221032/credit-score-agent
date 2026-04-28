@@ -7,4 +7,4 @@ matplotlib
 reportlab
 gunicorn
 scikit-learn
-google-genai
+google-generativeai

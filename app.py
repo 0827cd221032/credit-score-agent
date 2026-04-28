@@ -17,7 +17,9 @@ from flask_jwt_extended import (
 
 import os
 
+import google.generativeai as genai
 
+genai.configure(api_key=os.environ.get("GEMINI_API_KEY"))
 
 
 # ✅ INIT APP (ONLY ONCE)
@@ -83,23 +85,18 @@ def download_report():
 
 
 # ✅ GEMINI
-from google import genai
-
-client = genai.Client(
-    api_key=os.environ.get("GEMINI_API_KEY")
-)
+genai.configure(api_key=os.environ.get("GEMINI_API_KEY"))
 
 def ai_planner(data):
     try:
+        model = genai.GenerativeModel("gemini-1.5-flash")
+
         prompt = f"""
         Give a step-by-step 30-day plan to improve credit score.
         Data: {data}
         """
 
-        res = client.models.generate_content(
-            model="gemini-1.5-flash",
-            contents=prompt
-        )
+        res = model.generate_content(prompt)
 
         return res.text if hasattr(res, "text") else "No plan generated"
 
@@ -107,27 +104,29 @@ def ai_planner(data):
         print("Planner Error:", e)
         return "Planner unavailable"
 
+
+
+
+
 # ---------------- AI ----------------
 def generate_ai_explanation(data, risks):
     try:
+        model = genai.GenerativeModel("gemini-1.5-flash")
+
         prompt = f"""
-        Explain credit score in simple simple words.
+        Explain credit score in simple words.
 
         Data: {data}
         Risks: {risks}
         """
 
-        res = client.models.generate_content(
-            model="gemini-1.5-flash",
-            contents=prompt
-        )
+        res = model.generate_content(prompt)
 
         return res.text if hasattr(res, "text") else "No explanation generated"
 
     except Exception as e:
         print("AI Error:", e)
         return "AI explanation unavailable"
-
 # ---------------- DB ----------------
 def init_db():
     conn = sqlite3.connect("users.db")
