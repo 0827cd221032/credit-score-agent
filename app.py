@@ -17,11 +17,7 @@ from flask_jwt_extended import (
 
 import os
 
-try:
-    import google.generativeai as genai
-    genai.configure(api_key=os.environ.get("GEMINI_API_KEY"))
-except:
-    genai = None
+
 
 
 # ✅ INIT APP (ONLY ONCE)
@@ -87,42 +83,49 @@ def download_report():
 
 
 # ✅ GEMINI
-import google.generativeai as genai
+from google import genai
 
-genai.configure(api_key=os.environ.get("GEMINI_API_KEY"))
+client = genai.Client(
+    api_key=os.environ.get("GEMINI_API_KEY")
+)
 
 def ai_planner(data):
     try:
-        model_ai = genai.GenerativeModel("gemini-1.5-flash")
-
         prompt = f"""
         Give a step-by-step 30-day plan to improve credit score.
         Data: {data}
         """
 
-        res = model_ai.generate_content(prompt)
-        return res.text
+        res = client.models.generate_content(
+            model="gemini-1.5-flash",
+            contents=prompt
+        )
+
+        return res.text if hasattr(res, "text") else "No plan generated"
 
     except Exception as e:
-        print(e)
+        print("Planner Error:", e)
         return "Planner unavailable"
 
 # ---------------- AI ----------------
 def generate_ai_explanation(data, risks):
     try:
-        model_ai = genai.GenerativeModel("gemini-1.5-flash")
-
         prompt = f"""
-        Explain credit score in simple terms.
+        Explain credit score in simple simple words.
+
         Data: {data}
         Risks: {risks}
         """
 
-        res = model_ai.generate_content(prompt)
-        return res.text
+        res = client.models.generate_content(
+            model="gemini-1.5-flash",
+            contents=prompt
+        )
+
+        return res.text if hasattr(res, "text") else "No explanation generated"
 
     except Exception as e:
-        print(e)
+        print("AI Error:", e)
         return "AI explanation unavailable"
 
 # ---------------- DB ----------------
