@@ -5,6 +5,6 @@ pandas
 joblib
 matplotlib
 reportlab
-google-generativeai
 gunicorn
 scikit-learn
+google-genai
