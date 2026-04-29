@@ -1,133 +1,345 @@
 <!DOCTYPE html>
 <html>
 <head>
-<title>Credit AI Dashboard</title>
+    <title>Credit AI Dashboard</title>
+    <style>
+        body {
+            margin: 0;
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            color: white;
+            background: url('https://images.unsplash.com/photo-1551288049-bebda4e38f71') no-repeat center center/cover fixed;
+        }
 
-<style>
-body { margin:0; font-family:'Segoe UI'; color:white;
-background:url('https://images.unsplash.com/photo-1551288049-bebda4e38f71') no-repeat center/cover;}
-body::before{content:"";position:fixed;inset:0;background:rgba(0,0,0,0.6);}
+        body::before {
+            content: "";
+            position: fixed;
+            width: 100%;
+            height: 100%;
+            background: rgba(0,0,0,0.7);
+            top: 0;
+            left: 0;
+            z-index: 0;
+        }
 
-.container{width:95%;max-width:1200px;margin:40px auto;display:grid;grid-template-columns:1fr 1fr;gap:25px;}
-.card{background:rgba(255,255,255,0.12);padding:20px;border-radius:15px;}
-input,select{width:100%;padding:10px;margin:8px 0;background:#111;color:white;border-radius:8px;border:none;}
-button{width:100%;padding:12px;margin-top:10px;background:#00eaff;border:none;border-radius:10px;cursor:pointer;}
-.score{text-align:center;font-size:40px;}
-.logout{position:fixed;top:20px;right:20px;}
-</style>
+        .container {
+            position: relative;
+            z-index: 1;
+            width: 95%;
+            max-width: 1300px;
+            margin: 40px auto;
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 30px;
+        }
+
+        @media (max-width: 900px) {
+            .container { grid-template-columns: 1fr; }
+        }
+
+        .card {
+            background: rgba(255,255,255,0.1);
+            backdrop-filter: blur(15px);
+            padding: 25px;
+            border-radius: 18px;
+            border: 1px solid rgba(255,255,255,0.2);
+            box-shadow: 0 10px 30px rgba(0,0,0,0.5);
+            margin-bottom: 20px;
+        }
+
+        .highlight-card {
+            border: 2px solid rgba(0,234,255,0.6);
+            box-shadow: 0 0 20px rgba(0,234,255,0.3);
+        }
+
+        h2, h4 { color: #00eaff; text-align: center; margin-top: 0; }
+        label { display: block; color: #00eaff; font-size: 13px; margin-bottom: 5px; }
+
+        input, select {
+            width: 100%;
+            padding: 12px;
+            margin-bottom: 15px;
+            border-radius: 8px;
+            border: 1px solid rgba(255,255,255,0.2);
+            background: rgba(0,0,0,0.5);
+            color: white;
+            box-sizing: border-box;
+        }
+
+        button {
+            width: 100%;
+            padding: 14px;
+            font-weight: bold;
+            background: linear-gradient(45deg,#00eaff,#00ff9c);
+            color: black;
+            border: none;
+            border-radius: 10px;
+            cursor: pointer;
+            transition: 0.3s;
+            margin-bottom: 10px;
+        }
+
+        button:hover { transform: translateY(-2px); box-shadow: 0 5px 15px rgba(0,255,156,0.4); }
+
+        .score { font-size: 45px; text-align: center; font-weight: bold; color: #00eaff; margin: 10px 0; }
+        
+        .meter { position: relative; width: 160px; height: 160px; margin: 0 auto; }
+        .meter svg { transform: rotate(-90deg); }
+        .meter-text {
+            position: absolute; top: 50%; left: 50%;
+            transform: translate(-50%, -50%); font-size: 24px; font-weight: bold;
+        }
+
+        .logout-btn {
+            position: fixed; top: 20px; right: 20px; z-index: 1001;
+            width: auto; padding: 8px 20px; background: #ff4d4d; color: white;
+        }
+
+        ul { padding-left: 20px; }
+        li { margin-bottom: 8px; }
+        #aiText, #plan { font-size: 14px; line-height: 1.6; }
+    </style>
 </head>
 
 <body>
 
-<button class="logout" onclick="logout()">Logout</button>
+<button class="logout-btn" onclick="logout()">Logout</button>
 
 <div class="container">
+    <!-- LEFT COLUMN -->
+    <div class="left">
+        <div class="card highlight-card">
+            <h2>💳 Credit Input</h2>
+            <label>Monthly Income (₹)</label>
+            <input id="income" type="number" placeholder="e.g. 50000">
 
-<div class="card">
-<h2>Input</h2>
+            <label>Credit Usage (%)</label>
+            <input id="usage" type="number" placeholder="e.g. 30">
 
-<input id="income" placeholder="Income">
-<input id="usage" placeholder="Credit Usage">
-<select id="late">
-<option value="0">No Late Payment</option>
-<option value="1">Late Payment</option>
-</select>
+            <label>Late Payments in last 6 months?</label>
+            <select id="late">
+                <option value="0">No</option>
+                <option value="1">Yes</option>
+            </select>
 
-<input id="loans" placeholder="Loans">
+            <label>Number of Existing Loans</label>
+            <input id="loans" type="number" placeholder="e.g. 1">
 
-<button onclick="predict()">Analyze</button>
+            <button onclick="predict()">Analyze & Predict</button>
+            
+            <hr style="border: 0.5px solid rgba(255,255,255,0.1); margin: 20px 0;">
+            
+            <h4>📂 Bank Statement (CSV)</h4>
+            <input type="file" id="fileInput">
+            <button onclick="uploadFile()" style="background: #555; color: white;">Upload Statement</button>
+            <p id="bankResult" style="text-align: center; font-size: 12px;"></p>
+        </div>
 
-<h3>AI</h3>
-<p id="aiText">--</p>
+        <div class="card">
+            <h2>🤖 AI Explanation</h2>
+            <div id="aiText">Your analysis will appear here...</div>
+        </div>
+    </div>
+
+    <!-- RIGHT COLUMN -->
+    <div class="right">
+        <div class="card">
+            <h2>📊 Result</h2>
+            <div class="meter">
+                <svg width="160" height="160">
+                    <circle cx="80" cy="80" r="70" stroke="#333" stroke-width="10" fill="none"/>
+                    <circle id="progressCircle" cx="80" cy="80" r="70"
+                        stroke="#00eaff" stroke-width="10" fill="none"
+                        stroke-dasharray="440" stroke-dashoffset="440" 
+                        style="transition: stroke-dashoffset 1s ease;"/>
+                </svg>
+                <div class="meter-text" id="meterText">--</div>
+            </div>
+            <div id="score" class="score">--</div>
+            
+            <div style="display: flex; justify-content: space-between; margin: 20px 0;">
+                <div><strong>Risks:</strong> <ul id="risks"></ul></div>
+                <div><strong>Confidence:</strong> <span id="conf">--</span></div>
+            </div>
+
+            <button onclick="downloadPDF()">Download PDF Report</button>
+            <canvas id="chart"></canvas>
+        </div>
+
+        <div class="card">
+            <h2>📅 30-Day Improvement Plan</h2>
+            <div id="plan">Click Analyze to generate your personalized plan.</div>
+        </div>
+
+        <div class="card">
+            <h2>📊 History</h2>
+            <ul id="historyList"></ul>
+        </div>
+    </div>
 </div>
 
-<div class="card">
-<h2>Result</h2>
-
-<div id="score" class="score">--</div>
-<p id="conf">--</p>
-
-<h3>Plan</h3>
-<p id="plan">--</p>
-
-<h3>Tips</h3>
-<ul id="tips"></ul>
-
-<h3>History</h3>
-<ul id="history"></ul>
-
-</div>
-
-</div>
+<script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/marked/marked.min.js"></script>
 
 <script>
+
+// Authentication Check
 if(!localStorage.getItem("token")){
-    window.location.href="/login_page";
+    window.location.href = "/login_page";
 }
-
-function predict(){
-
-document.getElementById("score").innerText="Loading...";
-document.getElementById("aiText").innerText="Loading...";
-document.getElementById("plan").innerText="Loading...";
-
-let data={
-income:+income.value,
-credit_usage:+usage.value,
-late_payment:+late.value,
-loans:+loans.value
+let chart = null;
+// Load initial data
+window.onload = function() {
+    loadHistory();
+    
 };
 
-fetch("/predict",{
-method:"POST",
-headers:{
-"Content-Type":"application/json",
-"Authorization":"Bearer "+localStorage.getItem("token")
-},
-body:JSON.stringify(data)
-})
-.then(r=>r.json())
-.then(res=>{
+function predict() {
+    const incomeVal = document.getElementById("income").value;
+    const usageVal = document.getElementById("usage").value;
 
-console.log(res); // 🔥 DEBUG
+    if (!incomeVal || usageVal === "") {
+        alert("Please enter Income and Credit Usage percentage.");
+        return;
+    }
 
-// ✅ FIXED mapping
-document.getElementById("score").innerText=res.credit_score || "Error";
-document.getElementById("conf").innerText=res.confidence || "--";
-document.getElementById("aiText").innerText=res.ai_explanation || "No AI";
-document.getElementById("plan").innerText=res.plan || "No Plan";
+    const data = {
+        income: +incomeVal,
+        credit_usage: +usageVal,
+        late_payment: +document.getElementById("late").value,
+        loans: +document.getElementById("loans").value
+    };
 
-// tips
-document.getElementById("tips").innerHTML =
-(res.advice?.do || []).map(x=>`<li>${x}</li>`).join("");
+    document.getElementById("aiText").innerHTML = "<i>AI Agent is analyzing...</i>";
+    document.getElementById("plan").innerHTML = "<i>Generating plan...</i>";
 
-// history
-loadHistory();
+    fetch("/predict", {
+        method: "POST",
+        headers: {
+            "Content-Type": "application/json",
+            "Authorization": "Bearer " + localStorage.getItem("token") 
+        },
+        body: JSON.stringify(data)
+    })
+    .then(async r => {
+        const res = await r.json();
+        if (!r.ok) throw new Error(res.error || "Server Error");
+        return res;
+    })
+    .then(res => {
+        document.getElementById("score").innerText = res.credit_score || "N/A";
+        document.getElementById("meterText").innerText = res.cibil_score || "0";
+        document.getElementById("conf").innerText = ((res.confidence || 0) * 100).toFixed(0) + "%";
 
-})
-.catch(err=>{
-console.log(err);
-alert("Error calling API");
-});
+        document.getElementById("aiText").innerHTML = marked.parse(res.ai_explanation || "No explanation provided.");
+        document.getElementById("plan").innerHTML = marked.parse(res.plan || "No plan provided.");
 
+        let percent = res.credit_score === "Excellent" ? 95 : res.credit_score === "Good" ? 75 : res.credit_score === "Average" ? 50 : 25;
+        document.getElementById("progressCircle").style.strokeDashoffset = 440 - (440 * percent / 100);
+
+        document.getElementById("risks").innerHTML = (res.risks || []).map(x => `<li>⚠️ ${x}</li>`).join("");
+
+        // 🔥 ये दो लाइनें ज़रूरी हैं:
+        loadHistory();
+        updateChart(percent); 
+    })
+    .catch(err => {
+        console.error(err);
+        document.getElementById("aiText").innerHTML = `<span style="color:red">Error: ${err.message}</span>`;
+        document.getElementById("plan").innerHTML = "Plan unavailable due to error.";
+    });
 }
 
-function loadHistory(){
-fetch("/history",{
-headers:{
-"Authorization":"Bearer "+localStorage.getItem("token")
-}
-})
-.then(r=>r.json())
-.then(data=>{
-document.getElementById("history").innerHTML =
-data.map(x=>`<li>${x[0]} (${x[1]})</li>`).join("");
-});
+function updateChart(newScore) {
+    let history = JSON.parse(localStorage.getItem("score_history") || "[]");
+    history.push(newScore);
+    if(history.length > 10) history.shift();
+    localStorage.setItem("score_history", JSON.stringify(history));
+
+    const ctx = document.getElementById('chart').getContext('2d');
+    if (chart) chart.destroy(); // अब ये एरर नहीं देगा क्योंकि वेरिएबल ऊपर डिफाइन है
+    
+    chart = new Chart(ctx, {
+        type: 'line',
+        data: {
+            labels: history.map((_, i) => i + 1),
+            datasets: [{
+                label: 'Score Trend',
+                data: history,
+                borderColor: '#00eaff',
+                tension: 0.4,
+                fill: true,
+                backgroundColor: 'rgba(0, 234, 255, 0.1)'
+            }]
+        },
+        options: { plugins: { legend: { display: false } } }
+    });
 }
 
-function logout(){
-localStorage.removeItem("token");
-window.location.href="/login_page";
+function loadHistory() {
+    const token = localStorage.getItem("token");
+    if (!token) return;
+
+    fetch("/history", {
+        headers: { "Authorization": "Bearer " + token }
+    })
+    .then(r => r.status === 401 ? logout() : r.json())
+    .then(historyData => {
+        const list = document.getElementById("historyList");
+        if (Array.isArray(historyData) && historyData.length > 0) {
+            list.innerHTML = historyData.slice(-5).reverse().map(x => 
+                `<li>${x[2].split(' ')[0]}: <b>${x[0]}</b> (CIBIL: ${x[1]})</li>`
+            ).join("");
+        } else {
+            list.innerHTML = "<li>No history found.</li>";
+        }
+    })
+    .catch(err => console.error("History fetch error:", err));
+}
+
+function uploadFile() {
+    let file = document.getElementById("fileInput").files[0];
+    if(!file) { alert("Select a CSV file"); return; }
+    
+    let formData = new FormData();
+    formData.append("file", file);
+
+    fetch("/upload", { method: "POST", body: formData })
+    .then(res => res.json())
+    .then(result => {
+        if(result.income) {
+            document.getElementById("income").value = result.income;
+            document.getElementById("bankResult").innerText = `Detected Income: ₹${result.income}`;
+        }
+    });
+}
+
+function logout() {
+    localStorage.removeItem("token");
+    window.location.href = "/login_page";
+}
+
+function downloadPDF() {
+    const history = JSON.parse(localStorage.getItem("score_history") || "[]");
+    const reportData = {
+        score: document.getElementById("score").innerText,
+        cibil: document.getElementById("meterText").innerText,
+        ai: document.getElementById("aiText").innerText,
+        history: history
+    };
+
+    fetch("/download_report", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify(reportData)
+    })
+    .then(res => res.blob())
+    .then(blob => {
+        const url = window.URL.createObjectURL(blob);
+        const a = document.createElement("a");
+        a.href = url;
+        a.download = "Credit_Report.pdf";
+        a.click();
+    });
 }
 </script>
 
