@@ -1,79 +1,227 @@
 <!DOCTYPE html>
-<html>
+<html lang="en">
 <head>
-<title>Register</title>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Register | Credit Score Agent</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Doto:wght@400;600&family=Space+Grotesk:wght@400;500;700&family=Space+Mono:wght@400;700&display=swap" rel="stylesheet">
+    <style>
+        :root {
+            color-scheme: dark;
+            --bg: #050505;
+            --bg-elevated: #101010;
+            --line: rgba(255, 255, 255, 0.14);
+            --line-strong: rgba(255, 255, 255, 0.24);
+            --text-display: rgba(255, 255, 255, 1);
+            --text-primary: rgba(255, 255, 255, 0.9);
+            --text-secondary: rgba(255, 255, 255, 0.58);
+            --text-disabled: rgba(255, 255, 255, 0.38);
+            --success: #79c27c;
+            --danger: #d71921;
+        }
 
-<style>
-body {
-  margin:0;
-  font-family:'Segoe UI';
-  color:white;
-  background:url('https://images.unsplash.com/photo-1551288049-bebda4e38f71') no-repeat center/cover;
-}
-body::before{
-  content:"";
-  position:fixed; inset:0;
-  background:rgba(0,0,0,0.6);
-}
+        * { box-sizing: border-box; }
 
-.box{
-  position:relative;
-  width:350px;
-  margin:120px auto;
-  padding:30px;
-  border-radius:18px;
-  backdrop-filter: blur(18px);
-  background:rgba(255,255,255,0.1);
-  border:1px solid rgba(255,255,255,0.25);
-}
+        body {
+            margin: 0;
+            min-height: 100vh;
+            display: grid;
+            grid-template-columns: minmax(320px, 420px) 1fr;
+            font-family: "Space Grotesk", sans-serif;
+            background:
+                linear-gradient(225deg, rgba(255, 255, 255, 0.04), transparent 35%),
+                var(--bg);
+            color: var(--text-primary);
+        }
 
-input{
-  width:100%;
-  padding:12px;
-  margin:10px 0;
-  border-radius:10px;
-  border:none;
-}
+        .auth,
+        .intro {
+            padding: 48px;
+        }
 
-button{
-  width:100%;
-  padding:12px;
-  background:linear-gradient(45deg,#00eaff,#00ff9c);
-  border:none;
-  border-radius:10px;
-  font-weight:bold;
-}
-</style>
+        .auth {
+            border-right: 1px solid var(--line);
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+        }
+
+        .eyebrow,
+        .label,
+        .meta,
+        button {
+            font-family: "Space Mono", monospace;
+            text-transform: uppercase;
+            letter-spacing: 0.12em;
+        }
+
+        .eyebrow,
+        .label,
+        .meta {
+            color: var(--text-secondary);
+            font-size: 11px;
+        }
+
+        h1 {
+            margin: 0 0 28px;
+            font-size: 16px;
+            color: var(--text-display);
+            font-family: "Space Mono", monospace;
+            text-transform: uppercase;
+            letter-spacing: 0.14em;
+        }
+
+        .field {
+            display: grid;
+            gap: 8px;
+            margin-bottom: 18px;
+        }
+
+        input {
+            width: 100%;
+            padding: 14px 0;
+            border: none;
+            border-bottom: 1px solid var(--line-strong);
+            background: transparent;
+            color: var(--text-primary);
+            font: inherit;
+            outline: none;
+        }
+
+        input::placeholder {
+            color: var(--text-disabled);
+        }
+
+        input:focus {
+            border-bottom-color: var(--text-display);
+        }
+
+        button {
+            width: 100%;
+            padding: 14px 16px;
+            border: 1px solid var(--line-strong);
+            background: transparent;
+            color: var(--text-primary);
+            cursor: pointer;
+        }
+
+        button:hover {
+            background: rgba(255, 255, 255, 0.04);
+        }
+
+        #msg {
+            min-height: 20px;
+            margin: 14px 0 0;
+            font-size: 13px;
+        }
+
+        a {
+            color: var(--text-primary);
+        }
+
+        .intro {
+            display: flex;
+            flex-direction: column;
+            justify-content: space-between;
+        }
+
+        .intro h2 {
+            margin: 18px 0 0;
+            max-width: 640px;
+            font-size: clamp(44px, 7vw, 92px);
+            line-height: 0.9;
+            color: var(--text-display);
+            font-weight: 500;
+        }
+
+        .intro h2 span {
+            font-family: "Doto", sans-serif;
+        }
+
+        .intro-copy {
+            max-width: 440px;
+            line-height: 1.7;
+            color: var(--text-secondary);
+        }
+
+        .link-row {
+            margin-top: 18px;
+            color: var(--text-secondary);
+        }
+
+        @media (max-width: 900px) {
+            body {
+                grid-template-columns: 1fr;
+            }
+
+            .auth {
+                border-right: none;
+                border-bottom: 1px solid var(--line);
+            }
+
+            .auth,
+            .intro {
+                padding: 28px 20px;
+            }
+        }
+    </style>
 </head>
-
 <body>
-<div class="box">
-<h2>Register</h2>
+    <section class="auth">
+        <div>
+            <h1>Create account</h1>
 
-<input id="username" placeholder="Username">
-<input id="password" type="password" placeholder="Password">
+            <label class="field">
+                <span class="label">Username</span>
+                <input id="username" placeholder="your.username">
+            </label>
 
-<button onclick="register()">Register</button>
-<p id="msg"></p>
+            <label class="field">
+                <span class="label">Password</span>
+                <input id="password" type="password" placeholder="Create password">
+            </label>
 
-<p>Already have account? <a href="/login_page">Login</a></p>
-</div>
+            <button type="button" onclick="register()">Create workspace access</button>
+            <p id="msg"></p>
+            <p class="link-row">Already registered? <a href="/login_page">Go to login</a></p>
+        </div>
+    </section>
 
-<script>
-function register(){
-fetch("/register",{
-method:"POST",
-headers:{"Content-Type":"application/json"},
-body:JSON.stringify({
-username:document.getElementById("username").value,
-password:document.getElementById("password").value
-})
-})
-.then(r=>r.json())
-.then(res=>{
-document.getElementById("msg").innerText = res.msg;
-});
-}
-</script>
+    <section class="intro">
+        <div>
+            <div class="eyebrow">Load Fonts: Doto, Space Grotesk, Space Mono via Google Fonts</div>
+            <h2>Build a cleaner <span>baseline</span></h2>
+        </div>
+        <p class="intro-copy">Register once, then use the dashboard to compare score outcomes, review model reasoning, and track how your credit posture changes over time.</p>
+        <div class="meta">Credit Score Agent / New account</div>
+    </section>
+
+    <script>
+        function register() {
+            const message = document.getElementById("msg");
+            message.textContent = "";
+            message.style.color = "";
+
+            fetch("/register", {
+                method: "POST",
+                headers: { "Content-Type": "application/json" },
+                body: JSON.stringify({
+                    username: document.getElementById("username").value,
+                    password: document.getElementById("password").value
+                })
+            })
+            .then(function (response) { return response.json(); })
+            .then(function (result) {
+                message.textContent = result.msg || "Registration failed.";
+                message.style.color = result.msg === "User registered" ? "var(--success)" : "var(--danger)";
+            })
+            .catch(function () {
+                message.textContent = "Registration failed. Server unavailable.";
+                message.style.color = "var(--danger)";
+            });
+        }
+    </script>
 </body>
 </html>

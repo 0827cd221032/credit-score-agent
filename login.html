@@ -1,126 +1,228 @@
 <!DOCTYPE html>
-<html>
+<html lang="en">
 <head>
-<title>Login</title>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Login | Credit Score Agent</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Doto:wght@400;600&family=Space+Grotesk:wght@400;500;700&family=Space+Mono:wght@400;700&display=swap" rel="stylesheet">
+    <style>
+        :root {
+            color-scheme: dark;
+            --bg: #050505;
+            --bg-elevated: #101010;
+            --line: rgba(255, 255, 255, 0.14);
+            --line-strong: rgba(255, 255, 255, 0.24);
+            --text-display: rgba(255, 255, 255, 1);
+            --text-primary: rgba(255, 255, 255, 0.9);
+            --text-secondary: rgba(255, 255, 255, 0.58);
+            --text-disabled: rgba(255, 255, 255, 0.38);
+            --danger: #d71921;
+        }
 
-<style>
-body {
-    margin: 0;
-    font-family: 'Segoe UI';
-    color: white;
+        * { box-sizing: border-box; }
 
-    background: url('https://images.unsplash.com/photo-1551288049-bebda4e38f71') no-repeat center center/cover;
-}
+        body {
+            margin: 0;
+            min-height: 100vh;
+            display: grid;
+            grid-template-columns: 1.2fr minmax(320px, 440px);
+            font-family: "Space Grotesk", sans-serif;
+            background:
+                linear-gradient(135deg, rgba(255, 255, 255, 0.04), transparent 35%),
+                var(--bg);
+            color: var(--text-primary);
+        }
 
-/* overlay */
-body::before {
-    content: "";
-    position: fixed;
-    inset: 0;
-    background: rgba(0,0,0,0.65);
-    z-index: 0;
-}
+        .intro,
+        .auth {
+            padding: 48px;
+        }
 
-/* center box */
-.container {
-    position: relative;
-    z-index: 1;
+        .intro {
+            display: flex;
+            flex-direction: column;
+            justify-content: space-between;
+            border-right: 1px solid var(--line);
+        }
 
-    display: flex;
-    justify-content: center;
-    align-items: center;
+        .eyebrow,
+        .label,
+        .meta,
+        button {
+            font-family: "Space Mono", monospace;
+            text-transform: uppercase;
+            letter-spacing: 0.12em;
+        }
 
-    height: 100vh;
-}
+        .eyebrow,
+        .meta,
+        .label {
+            color: var(--text-secondary);
+            font-size: 11px;
+        }
 
-/* glass card */
-.box {
-    width: 350px;
-    padding: 30px;
+        h1 {
+            margin: 18px 0 0;
+            max-width: 620px;
+            font-size: clamp(44px, 7vw, 92px);
+            line-height: 0.9;
+            color: var(--text-display);
+            font-weight: 500;
+        }
 
-    border-radius: 18px;
-    backdrop-filter: blur(20px);
+        h1 span {
+            font-family: "Doto", sans-serif;
+        }
 
-    background: rgba(255,255,255,0.1);
-    border: 1px solid rgba(255,255,255,0.25);
+        .intro-copy {
+            max-width: 420px;
+            line-height: 1.7;
+            color: var(--text-secondary);
+        }
 
-    box-shadow: 0 10px 40px rgba(0,0,0,0.4);
-}
+        .auth {
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+        }
 
-/* inputs */
-input {
-    width: 100%;
-    padding: 12px;
-    margin: 12px 0;
+        .auth h2 {
+            margin: 0 0 28px;
+            font-size: 16px;
+            color: var(--text-display);
+            font-family: "Space Mono", monospace;
+            text-transform: uppercase;
+            letter-spacing: 0.14em;
+        }
 
-    border-radius: 10px;
-    border: none;
+        .field {
+            display: grid;
+            gap: 8px;
+            margin-bottom: 18px;
+        }
 
-    background: rgba(0,0,0,0.4);
-    color: white;
-}
+        input {
+            width: 100%;
+            padding: 14px 0;
+            border: none;
+            border-bottom: 1px solid var(--line-strong);
+            background: transparent;
+            color: var(--text-primary);
+            font: inherit;
+            outline: none;
+        }
 
-/* button */
-button {
-    width: 100%;
-    padding: 12px;
+        input::placeholder {
+            color: var(--text-disabled);
+        }
 
-    border: none;
-    border-radius: 10px;
+        input:focus {
+            border-bottom-color: var(--text-display);
+        }
 
-    font-weight: bold;
-    background: linear-gradient(45deg,#00eaff,#00ff9c);
-    cursor: pointer;
-}
+        button {
+            width: 100%;
+            padding: 14px 16px;
+            border: 1px solid var(--line-strong);
+            background: transparent;
+            color: var(--text-primary);
+            cursor: pointer;
+        }
 
-/* link */
-a {
-    color: #00eaff;
-}
-</style>
+        button:hover {
+            background: rgba(255, 255, 255, 0.04);
+        }
 
+        #msg {
+            min-height: 20px;
+            margin: 14px 0 0;
+            color: var(--danger);
+            font-size: 13px;
+        }
+
+        a {
+            color: var(--text-primary);
+        }
+
+        .link-row {
+            margin-top: 18px;
+            color: var(--text-secondary);
+        }
+
+        @media (max-width: 900px) {
+            body {
+                grid-template-columns: 1fr;
+            }
+
+            .intro {
+                border-right: none;
+                border-bottom: 1px solid var(--line);
+            }
+
+            .intro,
+            .auth {
+                padding: 28px 20px;
+            }
+        }
+    </style>
 </head>
-
 <body>
+    <section class="intro">
+        <div>
+            <div class="eyebrow">Load Fonts: Doto, Space Grotesk, Space Mono via Google Fonts</div>
+            <h1>Score with less <span>noise</span></h1>
+        </div>
+        <p class="intro-copy">Log in to review your last credit runs, inspect risk drivers, and generate a tighter improvement plan from the same workspace.</p>
+        <div class="meta">Credit Score Agent / Secure session</div>
+    </section>
 
-<div class="container">
-<div class="box">
+    <section class="auth">
+        <div>
+            <h2>Login</h2>
 
-<h2>Login</h2>
+            <label class="field">
+                <span class="label">Username</span>
+                <input id="username" placeholder="your.username">
+            </label>
 
-<input id="username" placeholder="Username">
-<input id="password" type="password" placeholder="Password">
+            <label class="field">
+                <span class="label">Password</span>
+                <input id="password" type="password" placeholder="Enter password">
+            </label>
 
-<button onclick="login()">Login</button>
+            <button type="button" onclick="login()">Open workspace</button>
+            <p id="msg"></p>
+            <p class="link-row">New user? <a href="/register_page">Create an account</a></p>
+        </div>
+    </section>
 
-<p id="msg"></p>
+    <script>
+        function login() {
+            document.getElementById("msg").textContent = "";
 
-<p>New user? <a href="/register_page">Register</a></p>
-
-</div>
-</div>
-
-<script>
-function login(){
-  fetch("/login", {
-    method: "POST",
-    headers: {"Content-Type":"application/json"},
-    body: JSON.stringify({
-      username: document.getElementById("username").value,
-      password: document.getElementById("password").value
-    })
-  })
-  .then(r=>r.json())
-  .then(res=>{
-    if(res.msg === "success"){
-      localStorage.setItem("token", res.token);
-      window.location.href = "/dashboard";
-    } else {
-      document.getElementById("msg").innerText = "Login failed";
-    }
-  });
-}
-</script>
-
+            fetch("/login", {
+                method: "POST",
+                headers: { "Content-Type": "application/json" },
+                body: JSON.stringify({
+                    username: document.getElementById("username").value,
+                    password: document.getElementById("password").value
+                })
+            })
+            .then(function (response) { return response.json(); })
+            .then(function (result) {
+                if (result.msg === "success") {
+                    localStorage.setItem("token", result.token);
+                    window.location.href = "/dashboard";
+                    return;
+                }
+                document.getElementById("msg").textContent = "Login failed. Check your credentials.";
+            })
+            .catch(function () {
+                document.getElementById("msg").textContent = "Login failed. Server unavailable.";
+            });
+        }
+    </script>
 </body>
 </html>
