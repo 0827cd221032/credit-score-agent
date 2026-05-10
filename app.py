@@ -3,12 +3,13 @@ import sqlite3
 import random
 import re
 import json
+from io import BytesIO
 import pandas as pd
-from flask import Flask, request, jsonify, send_from_directory
+from flask import Flask, request, jsonify, send_from_directory, send_file
 from flask_cors import CORS
 from flask_jwt_extended import JWTManager, create_access_token, jwt_required, get_jwt_identity
 from werkzeug.security import generate_password_hash, check_password_hash
-from reportlab.platypus import SimpleDocTemplate, Paragraph, Image
+from reportlab.platypus import SimpleDocTemplate, Paragraph, Spacer
 from reportlab.lib.styles import getSampleStyleSheet
 import google.generativeai as genai
 
@@ -58,20 +59,20 @@ def call_credit_agent(user_data):
 
     for model_name in models_to_try:
         try:
-            print(f"🔄 Trying model: {model_name}...")
+            print(f"Trying model: {model_name}...")
             
             model = genai.GenerativeModel(model_name=model_name)
             response = model.generate_content(user_input)
             
             if response and response.text:
-                print(f"✅ Success with model: {model_name}")
+                print(f"Success with model: {model_name}")
                 # JSON cleaning and parsing
                 text = response.text.strip().replace("```json", "").replace("```", "").strip()
                 json_match = re.search(r'\{.*\}', text, re.DOTALL)
                 if json_match:
                     return json.loads(json_match.group())
         except Exception as e:
-            print(f"❌ {model_name} failed: {e}")
+            print(f"{model_name} failed: {e}")
             continue
 
     return None 
@@ -104,14 +105,24 @@ def register_page():
 @app.route("/register", methods=["POST"])
 def register():
     data = request.json
-    hashed = generate_password_hash(data["password"])
+    username = (data.get("username") or "").strip()
+    password = data.get("password") or ""
+
+    if not username or not password:
+        return jsonify({"msg": "Username and password are required"}), 400
+
+    hashed = generate_password_hash(password)
     conn = sqlite3.connect("users.db")
     c = conn.cursor()
     try:
-        c.execute("INSERT INTO users (username, password) VALUES (?, ?)", (data["username"], hashed))
+        c.execute("SELECT 1 FROM users WHERE username = ? LIMIT 1", (username,))
+        if c.fetchone():
+            return jsonify({"msg": "Username already exists"}), 400
+
+        c.execute("INSERT INTO users (username, password) VALUES (?, ?)", (username, hashed))
         conn.commit()
         return jsonify({"msg": "User registered"})
-    except:
+    except Exception:
         return jsonify({"msg": "Error"}), 400
     finally:
         conn.close()
@@ -119,12 +130,19 @@ def register():
 @app.route("/login", methods=["POST"])
 def login():
     data = request.json
+    username = (data.get("username") or "").strip()
+    password = data.get("password") or ""
+
+    if not username or not password:
+        return jsonify({"msg": "fail"}), 400
+
     conn = sqlite3.connect("users.db")
     c = conn.cursor()
-    c.execute("SELECT * FROM users WHERE username=?", (data["username"],))
+    # Prefer the most recent record in case legacy duplicate usernames exist.
+    c.execute("SELECT * FROM users WHERE username=? ORDER BY id DESC LIMIT 1", (username,))
     user = c.fetchone()
     conn.close()
-    if user and check_password_hash(user[2], data["password"]):
+    if user and check_password_hash(user[2], password):
         token = create_access_token(identity=user[1])
         return jsonify({"msg": "success", "token": token})
     return jsonify({"msg": "fail"}), 401
@@ -171,7 +189,7 @@ def predict():
         })
 
     except Exception as e:
-        print(f"🔥 Major Crash: {e}")
+        print(f"Major Crash: {e}")
         return jsonify({"error": "Something went wrong on the server."}), 500
 @app.route("/history")
 @jwt_required()
@@ -190,6 +208,33 @@ def upload():
     if file:
         return jsonify({"income": random.randint(30000, 90000)}) # Mock income for testing
     return jsonify({"error": "No file"}), 400
+
+@app.route("/download_report", methods=["POST"])
+def download_report():
+    data = request.json or {}
+    buffer = BytesIO()
+    document = SimpleDocTemplate(buffer)
+    styles = getSampleStyleSheet()
+    content = [
+        Paragraph("Credit Score Report", styles["Title"]),
+        Spacer(1, 12),
+        Paragraph(f"Score Band: {data.get('score', 'N/A')}", styles["BodyText"]),
+        Paragraph(f"CIBIL Proxy: {data.get('cibil', 'N/A')}", styles["BodyText"]),
+        Spacer(1, 12),
+        Paragraph("AI Analysis", styles["Heading2"]),
+        Paragraph((data.get("ai") or "No analysis available.").replace("\n", "<br/>"), styles["BodyText"]),
+        Spacer(1, 12),
+        Paragraph("Score Trend", styles["Heading2"]),
+        Paragraph(", ".join(str(value) for value in data.get("history", [])) or "No trend data available.", styles["BodyText"])
+    ]
+    document.build(content)
+    buffer.seek(0)
+    return send_file(
+        buffer,
+        as_attachment=True,
+        download_name="Credit_Report.pdf",
+        mimetype="application/pdf"
+    )
 
 if __name__ == "__main__":
     app.run(debug=True)
